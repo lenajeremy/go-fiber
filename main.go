@@ -32,6 +32,10 @@ func main() {
 		})
 	})
 
+	app.Get("/not-found", func(c *fiber.Ctx) error {
+		return fiber.ErrNotFound
+	})
+
 	app.Get("/mails", func(c *fiber.Ctx) error {
 		mails := []Mails{
 			{"jeremiahlena13@gmail.com", "How are you doing sir?", "Saying Hello", "winnerokere@gmail.com"},
