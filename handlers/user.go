@@ -32,19 +32,24 @@ func LoginUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	log.Println(loginValues)
-
 	db := database.DB
 	user := models.User{Username: loginValues.Username}
 
 	err := db.First(&user).Error
-
 	if err != nil {
 		log.Println(err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"data":    nil,
 			"success": false,
 			"message": "User Login failed. Please reach out to support",
+		})
+	}
+
+	if user.Password == "" || user.Username == "" {
+		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+			"data":    nil,
+			"success": false,
+			"message": "Username or Password is empty",
 		})
 	}
 
