@@ -29,6 +29,10 @@ func ConnectToDB() {
 	}
 
 	log.Println("Connection to DB established... Making migrations")
-	DB.AutoMigrate(&models.User{}, &models.Profile{}, &models.Todo{})
+	err = DB.AutoMigrate(&models.User{}, &models.Profile{}, &models.Todo{})
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	log.Println("Migrations complete")
 }
