@@ -3,13 +3,16 @@ package handlers
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"learn-fibre/config"
 	"learn-fibre/database"
 	"learn-fibre/models"
 	"learn-fibre/utils"
 	"log"
 	"strings"
+	"time"
 )
 
 type RegisterFormValues struct {
@@ -36,9 +39,10 @@ func LoginUser(ctx *fiber.Ctx) error {
 	}
 
 	db := database.DB
-	user := models.User{Username: loginValues.Username}
+	var user models.User
 
-	err := db.First(&user).Error
+	err := db.Where("username = ?", loginValues.Username).Find(&user).Error
+
 	if err != nil {
 		log.Println(err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -48,7 +52,7 @@ func LoginUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	if user.Password == "" || user.Username == "" {
+	if loginValues.Password == "" || loginValues.Username == "" {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"data":    nil,
 			"success": false,
@@ -56,23 +60,37 @@ func LoginUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	log.Println(user.Password, loginValues.Password)
-	if ok := checkPasswordMatch(user.Password, loginValues.Password); ok {
-		// the password matches, log the user in
-		log.Println(err)
-		log.Println("User Login Success")
-		return ctx.JSON(fiber.Map{
-			"data":    user,
-			"success": true,
-			"message": "Logged in successfully",
-		})
-	} else {
+	passwordMatches := checkPasswordMatch(user.Password, loginValues.Password)
+
+	if !passwordMatches {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"data":    nil,
 			"success": false,
 			"message": "Invalid login credentials",
 		})
 	}
+
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["id"] = user.ID
+	claims["username"] = user.Username
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+
+	t, err := token.SignedString([]byte(config.GetEnv("JWT_SECRET", "")))
+
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"data":    nil,
+			"success": false,
+			"message": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"data":    t,
+		"success": true,
+		"message": "Login Success",
+	})
 }
 
 func RegisterUser(ctx *fiber.Ctx) error {

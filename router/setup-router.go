@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
+	"learn-fibre/middleware"
 )
 
 type Mails struct {
@@ -13,8 +14,7 @@ type Mails struct {
 }
 
 func SetupRouter(app *fiber.App) {
-
-	todoRouterGroup := app.Group("/todos")
+	todoRouterGroup := app.Group("/todos", middleware.Protected())
 	TodosRouter(&todoRouterGroup)
 
 	authGroup := app.Group("/auth")
@@ -24,7 +24,7 @@ func SetupRouter(app *fiber.App) {
 		return c.SendString("Hello, World!")
 	})
 
-	app.Get("/ping", func(c *fiber.Ctx) error {
+	app.Get("/ping", middleware.Protected(), func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
 			"message":     "o=ping",
 			"allowed":     "true",
