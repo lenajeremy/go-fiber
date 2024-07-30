@@ -8,6 +8,6 @@ import (
 func TodosRouter(group *fiber.Router) {
 	(*group).Get("/", handlers.ListTodos)
 	(*group).Post("/create", handlers.CreateTodo)
-	(*group).Delete("/", handlers.DeleteTodo)
-	(*group).Patch("/", handlers.MarkTodoAsDone)
+	(*group).Patch("/:id/update", handlers.MarkTodoAsDone)
+	(*group).Delete("/:id/delete", handlers.DeleteTodo)
 }

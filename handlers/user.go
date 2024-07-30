@@ -129,7 +129,6 @@ func RegisterUser(ctx *fiber.Ctx) error {
 			"data":    nil,
 			"success": false,
 			"message": getMessageFromMissingFields(missingValues),
-			"testing": false,
 		})
 	}
 

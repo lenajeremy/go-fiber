@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -93,11 +94,14 @@ func CreateTodo(c *fiber.Ctx) error {
 func MarkTodoAsDone(c *fiber.Ctx) error {
 	db := database.DB
 	var todo models.Todo
-	if err := c.BodyParser(&todo); err != nil {
+
+	todoId := c.Params("id", "")
+
+	if err := db.Where("id = ?", todoId).First(&todo).Error; err != nil {
 		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
 			"success": false,
+			"error":   fmt.Sprintf("Todo with id `%s` does not exist", todoId),
 			"data":    nil,
-			"message": err.Error(),
 		})
 	}
 
@@ -114,19 +118,29 @@ func MarkTodoAsDone(c *fiber.Ctx) error {
 func DeleteTodo(c *fiber.Ctx) error {
 	db := database.DB
 	var todo models.Todo
-	if err := c.BodyParser(&todo); err != nil {
+	todoId := c.Params("id", "")
+
+	if todoId == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"success": false,
-			"data":    err,
-			"message": err.Error(),
+			"message": "Invalid todo id",
+			"data":    nil,
 		})
 	}
 
-	db.Delete(&todo)
+	err := db.Delete(&todo, "id = ?", todoId).Error
+
+	if err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"success": false,
+			"message": err.Error(),
+			"data":    nil,
+		})
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    todo,
+		"data":    nil,
 		"message": "Successfully deleted todo",
 	})
 }
