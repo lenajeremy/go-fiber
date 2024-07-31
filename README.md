@@ -1,4 +1,4 @@
-# TODO APP
+# TODO APP 🔥🔥
 
 A dead-simple todo app backend. Contains essentially all that you need for a todo app
 
@@ -16,7 +16,7 @@ A dead-simple todo app backend. Contains essentially all that you need for a tod
 - Create a `.env` file using the template provided in the `.env.example` file.
 - Run the server `go run main.go`
 
-## Technology User
+## Technologies Used
 - Language: Go
 - Framework: Fiber
 - Database: PostgresQL
